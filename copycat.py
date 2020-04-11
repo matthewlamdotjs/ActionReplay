@@ -86,6 +86,8 @@ def reset():
 # replay event stream with randomization for anti-bot detection circumvention
 def replay():
 
+	keyboard_ctl = keyboard.Controller()
+
 	# re-seed? 5% chance
 	if(random() <= 0.05):
 		seed(datetime.now())
@@ -130,6 +132,13 @@ def replay():
 		# scroll
 		elif(len(event) == 4):
 			mouse_ctl.scroll(event[1], event[2])
+		# keys
+		elif(len(event) == 2):
+			if(event[1][1]):
+				time.sleep(random() * 0.2)
+				keyboard_ctl.press(KeyCode.from_vk(event[1][0]))
+			else:
+				keyboard_ctl.release(KeyCode.from_vk(event[1][0]))
 		else:
 			pass
 		# delay
@@ -149,25 +158,31 @@ def on_press(key):
 	global recording
 	global captured
 	global end
-	if(not captured and not recording and key.value.vk == 49):
+	# global events
+	if(not captured and not recording and key.value.vk == 55):
 		print('Recording...')
 		recording = True
-	elif(not captured and recording and key.value.vk == 49):
-		recording = False
-		captured = True
+	elif(not captured and recording):
+		if(key.value.vk == 55):
+			recording = False
+			captured = True
+		else:
+			events.append((time.time(), (key.value.vk, True)))
 	elif(captured and key.value.vk == 53):
 		end = True
-	pass
 
 def on_release(key):
-    pass
+	global events
+	if(not captured and recording and key.value.vk != 55):
+		events.append((time.time(), (key.value.vk, False)))
+	# pass
 
 keyboard_listener = keyboard.Listener(
     on_press=on_press,
     on_release=on_release)
 keyboard_listener.start()
 
-print('Press the space bar to begin capturing, then press the space bar again to end recording and start replay.')
+print('Press the cmd key to begin capturing, then press cmd key again to end recording and start replay.')
 
 while(not captured):
 	pass
@@ -181,7 +196,7 @@ for i in range(5):
     print(5 - i)
     time.sleep(1)
 
-print('Pres ESC to exit')
+print('Pres esc to exit')
 
 while(not end):
 	replay()
