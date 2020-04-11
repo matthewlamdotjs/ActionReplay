@@ -61,12 +61,9 @@ def reset(offset_x, offset_y, mod_amplitude):
 			dx = (xx - x) / dt
 			dy = (yy - y) / dt
 
-			print(dx)
-			print(dy)
-
 			# amplitude sinusoidal modulation
-			mod_amplitude_x = random() * 2.5
-			mod_amplitude_y = random() * 2.5
+			mod_amplitude_x = random() * 10
+			mod_amplitude_y = random() * 10
 
 
 
@@ -91,20 +88,20 @@ def reset(offset_x, offset_y, mod_amplitude):
 				mouse_ctl.position = (x + x_mod, y + y_mod)
 
 
-			# prevent end jump from variant end point
+			# prevent end jump from variant end point due to sine mod
 			(x, y) = mouse_ctl.position
-			dx = (xx - x) / 1000
-			dy = (yy - y) / 1000
+			dx = (xx - x) / dt
+			dy = (yy - y) / dt
 			theta_x = 0
 			theta_y = 0
-			d_theta_x = math.pi / 1000
-			d_theta_y = math.pi / 1000
+			d_theta_x = math.pi / dt
+			d_theta_y = math.pi / dt
 			mod_amplitude_x = random() * 10
 			mod_amplitude_y = random() * 10
 			x_sign = -1 if random() > 0.5 else 1
 			y_sign = -1 if random() < 0.5 else 1
 			
-			for i in range(1000):
+			for i in range(dt):
 
 				x_mod = x_sign * math.sin(theta_x) * mod_amplitude_x
 				y_mod = y_sign * math.sin(theta_y) * mod_amplitude_y
