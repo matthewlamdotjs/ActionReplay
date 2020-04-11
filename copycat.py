@@ -38,7 +38,7 @@ mouse_listener.start()
 
 
 # reset mouse position smoothly
-def reset():
+def reset(offset_x, offset_y, mod_amplitude):
 
 	# find first mouse move event to consider as end point
 	found = False
@@ -54,16 +54,24 @@ def reset():
 
 			# save current position
 			(x, y) = mouse_ctl.position
-			(xx, yy) = (events[counter][1], events[counter][2])
+
+			x_mod = math.sin(events[counter][0]) * mod_amplitude
+			y_mod = math.cos(events[counter][0]) * mod_amplitude
+			(xx, yy) = (events[counter][1] + offset_x + x_mod, events[counter][2] + offset_y + y_mod)
 			dx = (xx - x) / dt
 			dy = (yy - y) / dt
 
-			# amplitude sinusoidal modulation
-			mod_amplitude = random() * 2.5
+			print(dx)
+			print(dy)
 
-			# initial thetas set to random radian values
-			theta_x = random()
-			theta_y = random()
+			# amplitude sinusoidal modulation
+			mod_amplitude_x = random() * 2.5
+			mod_amplitude_y = random() * 2.5
+
+
+
+			theta_x = 0
+			theta_y = 0
 			d_theta_x = 0.005 + (random() * 0.005)
 			d_theta_y = 0.005 + (random() * 0.005)
 
@@ -71,16 +79,45 @@ def reset():
 			for i in range(dt):
 
 				# modulation as f(x) of time
-				x_mod = math.sin(theta_x) * mod_amplitude
-				y_mod = math.cos(theta_y) * mod_amplitude
+				x_mod = 0#math.sin(theta_x) * mod_amplitude_x
+				y_mod = 0#-math.sin(theta_y) * mod_amplitude_y
 
 				x = x + dx
-				y = y + dx
+				y = y + dy
 				theta_x += d_theta_x
 				theta_y += d_theta_y
 
 				# move
 				mouse_ctl.position = (x + x_mod, y + y_mod)
+
+
+			# prevent end jump from variant end point
+			(x, y) = mouse_ctl.position
+			dx = (xx - x) / 1000
+			dy = (yy - y) / 1000
+			theta_x = 0
+			theta_y = 0
+			d_theta_x = math.pi / 1000
+			d_theta_y = math.pi / 1000
+			mod_amplitude_x = random() * 10
+			mod_amplitude_y = random() * 10
+			x_sign = -1 if random() > 0.5 else 1
+			y_sign = -1 if random() < 0.5 else 1
+			
+			for i in range(1000):
+
+				x_mod = x_sign * math.sin(theta_x) * mod_amplitude_x
+				y_mod = y_sign * math.sin(theta_y) * mod_amplitude_y
+				
+				x = x + dx
+				y = y + dx
+
+				theta_x += d_theta_x
+				theta_y += d_theta_y
+
+				mouse_ctl.position = (x + x_mod, y + y_mod)
+
+
 
 
 # replay event stream with randomization for anti-bot detection circumvention
@@ -100,8 +137,17 @@ def replay():
 	if(random() <= 0.5):
 		offset_y = -1 * offset_y
 
+
 	# amplitude sinusoidal modulation
 	mod_amplitude = random() * 1.9
+
+	# reset smooth
+	if(len(events) > 0):	
+
+		# random walk to original position
+		reset(offset_x, offset_y, mod_amplitude)
+
+
 
 	counter = 0
 	
@@ -149,9 +195,6 @@ def replay():
 
 	# random sleep
 	time.sleep(5 * random())
-
-	# random walk to original position
-	reset()
 
 # Key control hooks
 def on_press(key):
